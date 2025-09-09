@@ -4,8 +4,25 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <signal.h>
+#include <sys/wait.h>
+void sig_chld(int signo)
+{
+	pid_t pid;
+	int stat;
+	
+	while ( (pid = waitpid(-1, &stat, WNOHANG)) > 0)
+	{
+		printf("client %d closed connection\n", pid);
+	}
+	
+	
+	return;
+}
 int main()
 {
+	
+	signal(SIGCHLD, sig_chld);
 	//create socket address structure and initialize to zero	
 	struct sockaddr_in servaddr;
 	bzero(&servaddr, sizeof(servaddr));
@@ -27,8 +44,9 @@ int main()
 	pid_t pid;
 	for ( ; ; )
 	{
+		printf("waiting for connection\n");
 		client_id = accept(server_id, NULL, NULL);
-		
+		printf("Connection accepted\n");
 		//Concurrency	
 		pid = fork();
 		
@@ -38,14 +56,18 @@ int main()
 			close(server_id);
 			int n;
 			char buffer[100];
-			
+			printf("Child processes running\n");
 			while( (n = read(client_id, buffer, sizeof(buffer))) > 0)
 			{
 				write(client_id, buffer, n);
+				
 			}
+			
+			
 			close(client_id);
 			exit(0);
 		}
+		
 		
 		//close client connection in parent
 		close(client_id);
