@@ -36,7 +36,13 @@ int main()
 		if (pid == 0)
 		{
 			close(server_id);
-			printf("processing request");
+			int n;
+			char buffer[100];
+			
+			while( (n = read(client_id, buffer, sizeof(buffer))) > 0)
+			{
+				write(client_id, buffer, n);
+			}
 			close(client_id);
 			exit(0);
 		}
