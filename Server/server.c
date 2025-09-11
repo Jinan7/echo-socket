@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <string.h>
 void sig_chld(int signo)
 {
 	pid_t pid;
@@ -55,11 +56,15 @@ int main()
 		{
 			close(server_id);
 			int n;
+			long arg1, arg2, res;
 			char buffer[100];
 			printf("Child processes running\n");
 			while( (n = read(client_id, buffer, sizeof(buffer))) > 0)
 			{
-				write(client_id, buffer, n);
+				sscanf(buffer, "%ld %ld", &arg1, &arg2);
+				res = arg1 + arg2;
+				snprintf(buffer, sizeof(buffer), "%ld\n", res);
+				write(client_id, buffer, strlen(buffer));
 				
 			}
 			
