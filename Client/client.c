@@ -25,37 +25,47 @@ int main(int argc, char **argv)
 	
 	
 	//echo logic
-	char sendline[100], recvline[100];
+	char buffer[100];
 	int stdineof, n, maxn;
 	fd_set rset;
 	
-	
+	stdineof = 0;
 	FD_ZERO(&rset);
-	maxn = fileno(stdin) > client_id ? fileno(stdin) + 1: client_id + 1;
+	
 	for ( ; ; )
 	{
-		FD_SET(fileno(stdin), &rset);
+		if (stdineof == 0)
+			FD_SET(fileno(stdin), &rset);
 		FD_SET(client_id, &rset);
-		
+		maxn = fileno(stdin) > client_id ? fileno(stdin) + 1: client_id + 1;
 		select(maxn, &rset, NULL, NULL, NULL);
 		
 		if (FD_ISSET(client_id, &rset))
 		{
-			if (read(client_id, recvline, 100)==0)
+			if ((n = read(client_id, buffer, 100))==0)
 			{
-				fputs("Server terminated prematurely", stdout);
+				if (stdineof == 1)
+				{
+					break;
+				}else{
+					write(fileno(stdout), "Server terminated prematurely\n", sizeof("Server terminated prematurely\n"));
+				}
+				
 				break;
 			}
-			fputs(recvline, stdout);
+			write(fileno(stdout), buffer, n);
 		}
 		
 		if (FD_ISSET(fileno(stdin), &rset))
 		{
-			if (fgets(sendline, 100, stdin)==NULL)
+			if ((n=read(fileno(stdin), buffer, 100))==0)
 			{
-				break;	
+				stdineof = 1;
+				shutdown(client_id, SHUT_WR);	
+				FD_CLR(fileno(stdin),&rset);
+				continue;
 			}
-			write(client_id, sendline, strlen(sendline));
+			write(client_id, buffer, n);
 		}
 	}
 	

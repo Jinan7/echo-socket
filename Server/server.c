@@ -63,6 +63,7 @@ int main()
 			{
 				sscanf(buffer, "%ld %ld", &arg1, &arg2);
 				res = arg1 + arg2;
+				printf("ready\n");
 				snprintf(buffer, sizeof(buffer), "%ld\n", res);
 				write(client_id, buffer, strlen(buffer));
 				
