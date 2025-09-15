@@ -24,11 +24,12 @@ int main(int argc, char **argv)
     int len = sizeof(servaddr);
     struct sockaddr_in *reply;
     reply = malloc(sizeof(struct sockaddr_in));
+    connect(sockfd, (struct sockaddr*) servaddr, sizeof(servaddr));
     while ( read(fileno(stdin), sendline, sizeof(sendline)) )
     {
     
 
-        sendto(sockfd, sendline, strlen(sendline), 0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+        write(sockfd, sendline, strlen(sendline));
 
         n = recvfrom(sockfd, recvline, sizeof(recvline), 0, (struct sockaddr*) reply, &len);
 
